@@ -18,13 +18,13 @@ header = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"}
 
 
-def page_request(url, header):
+def page_request(url, header):  # 发起请求并返回响应内容。
     response = requests.get(url, header)
     responded = response.content.decode('UTF-8')
     return responded
 
 
-def page_parse(html):
+def page_parse(html):  # 解析返回的响应内容，提取公交路线的链接和相关描述信息。
     bus_url = []
     soup = BeautifulSoup(html, 'lxml')
     # 查找包含公交路线链接的<a>标签
@@ -41,7 +41,7 @@ def page_parse(html):
     return bus_url
 
 
-def page_parse_sub(html):
+def page_parse_sub(html):  # 解析公交路线详情页面的HTML内容，提取具体的公交路线信息。
     soup = BeautifulSoup(html, 'lxml')
     bus_info_list = []
 
@@ -80,7 +80,7 @@ def page_parse_sub(html):
 
 print("---------------------公交路线爬取开始---------------------")
 header_written = False
-for page_num in range(2, 6):
+for page_num in range(2, 6):  # 排除地铁的页面{1}
     # time.sleep(1)
     current_url = url + url1.format(page_num)
     print(f"当前正在爬取的URL: {current_url}")
