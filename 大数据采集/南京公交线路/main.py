@@ -5,8 +5,8 @@ import requests
 from bs4 import BeautifulSoup
 import time
 
-url_filename = 'info.csv'
-info_filename = 'bus_info.csv'
+url_filename = 'demo.csv'
+info_filename = 'demo1.csv'
 url = "https://nanjing.8684.cn"
 url1 = "/line{}"
 url_header = ['URL', '线路']
@@ -44,37 +44,37 @@ def page_parse(html):  # 解析返回的响应内容，提取公交路线的链�
 def page_parse_sub(html):  # 解析公交路线详情页面的HTML内容，提取具体的公交路线信息。
     soup = BeautifulSoup(html, 'lxml')
     bus_info_list = []
+    info_div = soup.find('div', class_='info')
+    if info_div:
+        # 提取线路名称和线路类型
+        line_name = info_div.h1.span.get_text(strip=True)
+        line_type = info_div.h1.a.get_text(strip=True) if info_div.h1.a else None
+        # 提取路线
+        route_line = soup.find('div', class_='bus-lzlist mb15').find_all('li')
+        route_line = '---'.join([a.get_text(strip=True) for a in route_line])
+        # 提取运行时间、参考票价、公交公司和最后更新
+        for desc_li in info_div.find('ul', class_='bus-desc').find_all('li'):
+            desc_text = desc_li.get_text(strip=True)
+            if '运行时间' in desc_text:
+                run_time = desc_text.split('：')[1].strip()
+            elif '参考票价' in desc_text:
+                reference_price = desc_text.split('：')[1].strip()
+            elif '公交公司' in desc_text:
+                company = desc_li.find('a').get_text(strip=True) if desc_li.find('a') else None
+            elif '最后更新' in desc_text:
+                last_update = desc_text.split('：')[1].strip()[0:10]
 
-    for info in soup.find_all('div', class_='layout layout--728-250'):
-        for info_div in soup.find_all('div', class_='info'):
-            # 提取线路名称和线路类型
-            line_name = info_div.h1.span.get_text(strip=True)
-            line_type = info_div.h1.a.get_text(strip=True) if info_div.h1.a else None
+        bus_info = {# 假设所有信息都已提取，添加到列表中
+            '线路名称': line_name,
+            '线路类型': line_type,
+            '运行时间': run_time,
+            '参考票价': reference_price,
+            '公交公司': company,
+            '最后更新': last_update,
+            '公交路线-往': route_line
+        }
+        bus_info_list.append(bus_info)
 
-            route_line = soup.find('div', class_='bus-lzlist mb15').find_all('li')
-            # 提取路线：
-            route_line = '---'.join([a.text for a in route_line])
-            for desc_li in info_div.find('ul', class_='bus-desc').find_all('li'):
-                # 提取运行时间、参考票价、公交公司和最后更新
-                desc_text = desc_li.get_text(strip=True)
-                if '运行时间' in desc_text:
-                    run_time = desc_text.split('：')[1]
-                elif '参考票价' in desc_text:
-                    reference_price = desc_text.split('：')[1]
-                elif '公交公司' in desc_text:
-                    company = desc_li.find('a').get_text(strip=True)
-                elif '最后更新' in desc_text:
-                    last_update = desc_text.split('：')[1][0:10]
-            bus_info = {
-                '线路名称': line_name,
-                '线路类型': line_type,
-                '运行时间': run_time,
-                '参考票价': reference_price,
-                '公交公司': company,
-                '最后更新': last_update,
-                '公交路线-往': route_line
-            }
-            bus_info_list.append(bus_info)
     return bus_info_list
 
 
